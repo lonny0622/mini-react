@@ -1,13 +1,7 @@
 
-// 用于时间分片，指定下一个任务
-let nextUnitOfWork = null;
-// 保存"上次提交到 DOM 节点的 fiber 树" 的"引用"（reference）。
-let currentRoot = null;
-// 用来追踪并暂存fiber tree上DOM节点的修改，当更新完成后统一提交，避免用户看到渲染未完全的 UI
-let wipRoot = null;
-// 用于保存要移除的 dom 节点。
-let deletions = null;
 
+
+/****************************************** CREATE ELEMENT ****************************************************** */
 
 /**
  * 实现createElement
@@ -52,7 +46,7 @@ function createDom(fiber) {
 
   return dom;
 }
-
+/****************************************************RANDER**************************************************************** */
 //比较特殊的属性值是事件监听，如果属性值以 “on” 作为前缀，我们需要以不同的方式来处理这个属性
 const isEvent = key => key.startsWith("on");
 //判断是否为事件或子元素外的属性
@@ -111,7 +105,11 @@ function commitRoot() {
   currentRoot = wipRoot;
   wipRoot = null;
 }
-
+/**
+ * 提交任务
+ * @param  fiber 
+ * @returns 
+ */
 function commitWork(fiber) {
   if (!fiber) {
     return;
@@ -137,6 +135,11 @@ function commitWork(fiber) {
   commitWork(fiber.sibling);
 }
 
+/**
+ * 提交需要删除的节点
+ * @param {*} fiber 
+ * @param {*} domParent 
+ */
 function commitDeletion(fiber, domParent) {
   if (fiber.dom) {
     domParent.removeChild(fiber.dom);
@@ -166,7 +169,15 @@ function render(element, container) {
   nextUnitOfWork = wipRoot;
 }
 
-
+/*********************************************FIBER*************************************************** */
+// 用于时间分片，指定下一个任务
+let nextUnitOfWork = null;
+// 保存"上次提交到 DOM 节点的 fiber 树" 的"引用"（reference）。
+let currentRoot = null;
+// 用来追踪并暂存fiber tree上DOM节点的修改，当更新完成后统一提交，避免用户看到渲染未完全的 UI
+let wipRoot = null;
+// 用于保存要移除的 dom 节点。
+let deletions = null;
 
 /**
  * 实现fiber
@@ -227,7 +238,10 @@ function performUnitOfWork(fiber) {
   }
 }
 
+/****************************************FUNCTION COMPONENT AND HOOKS******************************************************** */
+// work in progress fiber
 let wipFiber = null;
+// 表示这是该组件的第几个useState
 let hookIndex = null;
 
 /**
@@ -284,7 +298,10 @@ function useState(initial) {
   hookIndex++;
   return [hook.state, setState];
 }
-
+/*******************************************************RECONCILE***************************************************************/
+/**
+ * 更新类组件
+ */
 function updateHostComponent(fiber) {
   if (!fiber.dom) {
     fiber.dom = createDom(fiber);
